@@ -4,7 +4,7 @@ from lxml import etree
 
 from bs4 import BeautifulSoup
 from pyquery import PyQuery as  pq
-
+import json
 url='https://book.douban.com/top250?start=0'
 def get_one_page(url):
     headers={
@@ -52,30 +52,39 @@ def parse_page_pyquery(html):
     book={}
     results=doc('.article .indent table')
     for result in results.items():
-        book["title"]=result('.pl2 a').text()
-        book["author"]=result('.pl2 .pl').text()
-        book["rating"]=result('.rating_nums').text()
-        book["notes"]=result('.inq').text()
-        print(book)
+        yield{
+            "title":result('.pl2 a').text(),
+            "author":result('.pl').text(),
+            "rating":result('.rating_nums').text(),
+            "notes":result('.inq').text()
+        }
+
+        
+
+def write_tofile(content):
+    filename='douban.txt'
+    with open(filename,'a',encoding='utf-8') as f:
+        f.write(json.dumps(content,ensure_ascii=False)+'\n')
 
 
+        
 
 
-
-
-
-def main():
-
-
-    html=get_one_page(url)
-    parse_page_beautifulsoup_base(html)
-
-
-
-
-main()
-
-
+def main(nums):
+    url='https://book.douban.com/top250?start='+str(nums)
     
+    html=get_one_page(url)
+    books=parse_page_pyquery(html)
+    for book in books:
+        write_tofile(book)
+
+
+
+if __name__=='__main__':
+    for i in range(10):
+        nums=25*i
+        main(nums)
+
+
 
 
